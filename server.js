@@ -3,9 +3,19 @@ const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
 
-const PORT = Number.parseInt(process.env.PORT || "3010", 10);
-const HOST = process.env.HOST || "127.0.0.1";
-const PUBLIC_ORIGIN = process.env.PUBLIC_ORIGIN || "https://spin.bownsfam.app";
+function readEnv(name, fallback) {
+  const value = process.env[name];
+  if (typeof value !== "string") {
+    return fallback;
+  }
+
+  const trimmed = value.trim();
+  return trimmed || fallback;
+}
+
+const PORT = Number.parseInt(readEnv("PORT", "3010"), 10);
+const HOST = readEnv("HOST", "127.0.0.1");
+const PUBLIC_ORIGIN = readEnv("PUBLIC_ORIGIN", "https://spin.bownsfam.app");
 const ROOT = path.join(__dirname, "src");
 const ALLOWED_HOSTS = new Set(["overwatch.blizzard.com"]);
 const ALLOWED_IMAGE_HOSTS = new Set(["d15f34w2p8l1cc.cloudfront.net"]);

@@ -6,7 +6,10 @@ const DEFAULT_PROFILES = [
     url: "https://overwatch.blizzard.com/en-us/career/d452ad99bb3ccaf9bea927%7C437063a46c16b6df52a8fd16ba6925b8/"
   },
   { name: "Xeonight", url: "" },
-  { name: "Kingkeeper", url: "" },
+  {
+    name: "KingKeeper",
+    url: "https://overwatch.blizzard.com/en-us/career/d957a28d98749ebdece23aa1d306a1%7Cee5edd39d3eade2954fb59085aff7bab/"
+  },
   { name: "Alylynn", url: "" },
   {
     name: "Makeshift",

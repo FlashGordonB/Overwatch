@@ -3,7 +3,9 @@ const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
 
-const PORT = process.env.PORT || 3010;
+const PORT = Number.parseInt(process.env.PORT || "3010", 10);
+const HOST = process.env.HOST || "127.0.0.1";
+const PUBLIC_ORIGIN = process.env.PUBLIC_ORIGIN || "https://spin.bownsfam.app";
 const ROOT = path.join(__dirname, "src");
 const ALLOWED_HOSTS = new Set(["overwatch.blizzard.com"]);
 const ALLOWED_IMAGE_HOSTS = new Set(["d15f34w2p8l1cc.cloudfront.net"]);
@@ -508,6 +510,8 @@ const server = http.createServer((req, res) => {
   sendFile(res, filePath);
 });
 
-server.listen(PORT, () => {
-  console.log(`Spinner app running at http://localhost:${PORT}`);
+server.listen(PORT, HOST, () => {
+  console.log(`Spinner app running on ${HOST}:${PORT}`);
+  console.log(`Host view: ${PUBLIC_ORIGIN}/host`);
+  console.log(`Viewer view: ${PUBLIC_ORIGIN}/view`);
 });

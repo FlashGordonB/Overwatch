@@ -1,6 +1,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 const sharp = require("sharp");
 
 function readEnv(name, fallback) {
@@ -17,6 +18,7 @@ const PORT = Number.parseInt(readEnv("PORT", "3010"), 10);
 const HOST = readEnv("HOST", "127.0.0.1");
 const PUBLIC_ORIGIN = readEnv("PUBLIC_ORIGIN", "https://spin.bownsfam.app");
 const ROOT = path.join(__dirname, "src");
+const HERO_CACHE_DIR = path.join(ROOT, "assets", "hero-cache");
 const ALLOWED_HOSTS = new Set(["overwatch.blizzard.com"]);
 const ALLOWED_IMAGE_HOSTS = new Set(["d15f34w2p8l1cc.cloudfront.net"]);
 const sseClients = new Set();
@@ -36,9 +38,12 @@ const mimeTypes = {
   ".png": "image/png",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
   ".svg": "image/svg+xml",
   ".ico": "image/x-icon"
 };
+
+fs.mkdirSync(HERO_CACHE_DIR, { recursive: true });
 
 function sendFile(res, filePath) {
   fs.readFile(filePath, (err, data) => {
@@ -214,6 +219,11 @@ function parseTopHeroesData(html) {
   return { stats, rankingsByStatId };
 }
 
+function getHeroThumbCacheFilename(url, width, height) {
+  const hash = crypto.createHash("sha1").update(`${url}|${width}x${height}`).digest("hex");
+  return `${hash}-${width}x${height}.webp`;
+}
+
 const server = http.createServer((req, res) => {
   if (req.url.startsWith("/api/live-stream")) {
     res.writeHead(200, {
@@ -369,45 +379,67 @@ const server = http.createServer((req, res) => {
     }
 
     const cacheKey = `${parsedTarget.toString()}|${width}x${height}`;
+    const diskCachePath = path.join(
+      HERO_CACHE_DIR,
+      getHeroThumbCacheFilename(parsedTarget.toString(), width, height)
+    );
     const cached = heroThumbCache.get(cacheKey);
     if (cached) {
       res.writeHead(200, {
         "Content-Type": "image/webp",
-        "Cache-Control": "public, max-age=86400"
+        "Cache-Control": "public, max-age=31536000, immutable"
       });
       res.end(cached);
       return;
     }
 
-    fetch(parsedTarget.toString(), {
-      method: "GET",
-      headers: { "User-Agent": "party-character-spinner/1.0" }
-    })
-      .then(async (response) => {
-        if (!response.ok) {
-          sendJson(res, 502, { ok: false, error: `Upstream image failed: ${response.status}` });
-          return;
-        }
-        const imageBuffer = Buffer.from(await response.arrayBuffer());
-        const thumbBuffer = await sharp(imageBuffer)
-          .resize(width, height, { fit: "cover", position: "attention" })
-          .webp({ quality: 62 })
-          .toBuffer();
-
+    fs.promises
+      .readFile(diskCachePath)
+      .then((diskBuffer) => {
         if (heroThumbCache.size > 600) {
           const firstKey = heroThumbCache.keys().next().value;
           heroThumbCache.delete(firstKey);
         }
-        heroThumbCache.set(cacheKey, thumbBuffer);
-
+        heroThumbCache.set(cacheKey, diskBuffer);
         res.writeHead(200, {
           "Content-Type": "image/webp",
-          "Cache-Control": "public, max-age=86400"
+          "Cache-Control": "public, max-age=31536000, immutable"
         });
-        res.end(thumbBuffer);
+        res.end(diskBuffer);
       })
-      .catch((error) => {
-        sendJson(res, 502, { ok: false, error: error.message });
+      .catch(async () => {
+        try {
+          const response = await fetch(parsedTarget.toString(), {
+            method: "GET",
+            headers: { "User-Agent": "party-character-spinner/1.0" }
+          });
+          if (!response.ok) {
+            sendJson(res, 502, { ok: false, error: `Upstream image failed: ${response.status}` });
+            return;
+          }
+
+          const imageBuffer = Buffer.from(await response.arrayBuffer());
+          const thumbBuffer = await sharp(imageBuffer)
+            .resize(width, height, { fit: "cover", position: "attention" })
+            .webp({ quality: 62 })
+            .toBuffer();
+
+          await fs.promises.writeFile(diskCachePath, thumbBuffer);
+
+          if (heroThumbCache.size > 600) {
+            const firstKey = heroThumbCache.keys().next().value;
+            heroThumbCache.delete(firstKey);
+          }
+          heroThumbCache.set(cacheKey, thumbBuffer);
+
+          res.writeHead(200, {
+            "Content-Type": "image/webp",
+            "Cache-Control": "public, max-age=31536000, immutable"
+          });
+          res.end(thumbBuffer);
+        } catch (error) {
+          sendJson(res, 502, { ok: false, error: error.message });
+        }
       });
     return;
   }
@@ -512,7 +544,7 @@ const server = http.createServer((req, res) => {
   }
 
   const requestUrl = new URL(req.url, `http://${req.headers.host || `localhost:${PORT}`}`);
-  let cleanPath = requestUrl.pathname === "/" ? "/host.html" : requestUrl.pathname;
+  let cleanPath = requestUrl.pathname === "/" ? "/index.html" : requestUrl.pathname;
   if (cleanPath === "/host") cleanPath = "/host.html";
   if (cleanPath === "/view") cleanPath = "/view.html";
   const safePath = path.normalize(cleanPath).replace(/^(\.\.[/\\])+/, "");

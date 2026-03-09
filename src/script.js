@@ -56,7 +56,9 @@ const appState = {
   selectedRoll: 1,
   diceBox: null,
   diceReady: false,
-  liveStream: null
+  liveStream: null,
+  diceDisplayEl: null,
+  diceDisplayValueEl: null
 };
 
 renderProfileColumns();
@@ -65,6 +67,8 @@ drawWheel(
   appState.stats.map((s) => s.label),
   makePalette("#2e6b6b", "#83c4b8", appState.stats.length)
 );
+initDiceDisplay();
+updateDiceDisplay(appState.selectedRoll);
 diceResultEl.textContent = String(appState.selectedRoll);
 statResultEl.textContent = appState.selectedStatLabel;
 initDiceBox();
@@ -326,11 +330,13 @@ async function rollD6() {
 
     appState.selectedRoll = value;
     diceResultEl.textContent = String(value);
+    updateDiceDisplay(value, { animate: true });
     renderAllResults();
   } catch (error) {
     const fallback = randInt(1, 6);
     appState.selectedRoll = fallback;
     diceResultEl.textContent = String(fallback);
+    updateDiceDisplay(fallback, { animate: true });
     renderAllResults();
     setDebugText(`3D roll error, used fallback: ${error.message}`);
   }
@@ -439,8 +445,10 @@ function applyLiveState(incoming) {
   if (!incoming) return;
 
   if (Number.isInteger(incoming.roll) && incoming.roll >= 1 && incoming.roll <= 6) {
+    const rollChanged = incoming.roll !== appState.selectedRoll;
     appState.selectedRoll = incoming.roll;
     diceResultEl.textContent = String(incoming.roll);
+    updateDiceDisplay(incoming.roll, { animate: rollChanged });
     if (isViewer) {
       nudgeDiceIntoView();
     }
@@ -473,6 +481,41 @@ function nudgeDiceIntoView() {
 
   if (window.innerWidth <= 700) {
     dice3dEl.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}
+
+function initDiceDisplay() {
+  if (!dice3dEl) return;
+
+  dice3dEl.innerHTML = `
+    <div class="dice-display" aria-hidden="true">
+      <div class="dice-cube">
+        <div class="dice-face dice-face-front"><span class="dice-pips" data-face="1"></span></div>
+        <div class="dice-face dice-face-back"><span class="dice-pips" data-face="6"></span></div>
+        <div class="dice-face dice-face-right"><span class="dice-pips" data-face="3"></span></div>
+        <div class="dice-face dice-face-left"><span class="dice-pips" data-face="4"></span></div>
+        <div class="dice-face dice-face-top"><span class="dice-pips" data-face="5"></span></div>
+        <div class="dice-face dice-face-bottom"><span class="dice-pips" data-face="2"></span></div>
+      </div>
+      <div class="dice-display-value">1</div>
+    </div>
+  `;
+
+  appState.diceDisplayEl = dice3dEl.querySelector(".dice-display");
+  appState.diceDisplayValueEl = dice3dEl.querySelector(".dice-display-value");
+}
+
+function updateDiceDisplay(value, { animate = false } = {}) {
+  if (!appState.diceDisplayEl || !appState.diceDisplayValueEl) {
+    return;
+  }
+
+  appState.diceDisplayEl.dataset.value = String(value);
+  appState.diceDisplayValueEl.textContent = String(value);
+  if (animate) {
+    appState.diceDisplayEl.classList.remove("dice-display-roll");
+    void appState.diceDisplayEl.offsetWidth;
+    appState.diceDisplayEl.classList.add("dice-display-roll");
   }
 }
 

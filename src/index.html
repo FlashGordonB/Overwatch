@@ -3,49 +3,66 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Party Character Spinner</title>
+    <title>Spin Control Hub</title>
     <link rel="stylesheet" href="./styles.css" />
-    <link rel="stylesheet" href="./vendor/dice-box/style.css" />
   </head>
-  <body>
-    <main class="app">
-      <header>
-        <div class="brand-row">
-          <img src="./assets/ow/ow-logo.png" alt="Overwatch logo" class="ow-logo" />
-          <div class="brand-chip">Party Draft Console</div>
-        </div>
-        <h1>Party Character Spinner</h1>
-        <p>Roll a D6 + spin a stat, then see Tank, Damage, and Support picks for each profile.</p>
-      </header>
-
-      <section class="top-controls">
-        <article class="control-card">
-          <h2>D6 Roll</h2>
-          <div class="dice-stage" id="dice3d"></div>
-          <button id="rollDiceBtn" type="button">Roll D6</button>
-          <p class="result">Result: <strong id="diceResult">1</strong></p>
-        </article>
-
-        <article class="control-card">
-          <h2>Stat Wheel</h2>
-          <div class="wheel-wrap">
-            <div class="pointer"></div>
-            <canvas id="statWheel" width="360" height="360" aria-label="Stat wheel"></canvas>
+  <body data-mode="landing">
+    <main class="landing-shell">
+      <section class="landing-screen">
+        <header class="ow-topbar">
+          <div class="ow-topbar-left">
+            <button class="ow-home-button" type="button" disabled aria-label="Home">
+              <span class="ow-home-glyph">Home</span>
+            </button>
+            <button class="ow-nav-button" type="button" disabled>Heroes</button>
+            <button class="ow-nav-button" type="button" disabled>Events</button>
+            <button class="ow-nav-button" type="button" disabled>Battle Pass</button>
+            <button class="ow-nav-button" type="button" disabled>Shop</button>
+            <button class="ow-nav-button" type="button" disabled>Story</button>
           </div>
-          <button id="spinStatBtn" type="button">Spin Stat</button>
-          <p class="result">Result: <strong id="statResult">-</strong></p>
-        </article>
-      </section>
+          <div class="ow-play-pill">
+            <img src="./assets/ow/ow-logo.png" alt="" />
+            <span>Play</span>
+          </div>
+          <div class="ow-topbar-right">
+            <div class="ow-status-pill">spin.bownsfam.app</div>
+          </div>
+        </header>
 
-      <section class="profiles-panel">
-        <div class="panel-head">
-          <h3>Profiles (Auto Load)</h3>
-          <button id="reloadAllBtn" type="button">Reload All Profiles</button>
-        </div>
-        <div id="profilesGrid" class="profiles-grid"></div>
+        <section class="landing-stage">
+          <div class="landing-stage-overlay"></div>
+
+          <div class="landing-column landing-column-left">
+            <div class="landing-panel">
+              <p class="landing-label">Host Console</p>
+              <h1>Run the room.</h1>
+              <p class="landing-copy">
+                Control the roll, trigger the stat spin, and broadcast the round state to every
+                viewer screen.
+              </p>
+              <a class="landing-cta landing-cta-host" href="/host">
+                <img src="./assets/ow/role-tank.svg" alt="" />
+                <span>Open Host</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="landing-column landing-column-right">
+            <div class="landing-panel landing-panel-right">
+              <p class="landing-label">Viewer Screen</p>
+              <h2>Show the live board.</h2>
+              <p class="landing-copy">
+                Keep a clean spectator display open for the couch, stream overlay, or shared room
+                monitor.
+              </p>
+              <a class="landing-cta landing-cta-view" href="/view">
+                <img src="./assets/ow/role-support.svg" alt="" />
+                <span>Open View</span>
+              </a>
+            </div>
+          </div>
+        </section>
       </section>
     </main>
-
-    <script type="module" src="./script.js"></script>
   </body>
 </html>

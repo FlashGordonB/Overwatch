@@ -5,12 +5,18 @@ const DEFAULT_PROFILES = [
     name: "Flash",
     url: "https://overwatch.blizzard.com/en-us/career/d452ad99bb3ccaf9bea927%7C437063a46c16b6df52a8fd16ba6925b8/"
   },
-  { name: "Xeonight", url: "" },
+  {
+    name: "Xeonight",
+    url: "https://overwatch.blizzard.com/en-us/career/ca51a9a4ba7693b9a4a126a6d3%7Cb2cb4008d354768ed6aa50603edc9db8/"
+  },
   {
     name: "KingKeeper",
     url: "https://overwatch.blizzard.com/en-us/career/d957a28d98749ebdece23aa1d306a1%7Cee5edd39d3eade2954fb59085aff7bab/"
   },
-  { name: "Alylynn", url: "" },
+  {
+    name: "Alylynn",
+    url: "https://overwatch.blizzard.com/en-us/career/f352b586aa7f95e0b8a520a6%7C441eae4bff62ad65418e7aa7082fd18c/"
+  },
   {
     name: "Makeshift",
     url: "https://overwatch.blizzard.com/en-us/career/df5fa78f807992abfda922bdd505a608%7C4dabfe9bef32707e920acc11d23033f6/"
